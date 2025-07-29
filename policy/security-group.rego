@@ -1,17 +1,17 @@
 package terraform.analysis
 
-# Define a helper function with 'if'
-allows_all_traffic(after) if {
+# Helper rule to detect all traffic (both IPv4 and IPv6)
+allows_all_traffic(after) {
     after.ip_protocol == "-1"
     after.cidr_ipv4 == "0.0.0.0/0"
 }
 
-allows_all_traffic(after) if {
+allows_all_traffic(after) {
     after.ip_protocol == "-1"
     after.cidr_ipv6 == "::/0"
 }
 
-deny[msg] if {
+deny[msg] {
     rc := input.resource_changes[_]
     rc.type == "aws_vpc_security_group_ingress_rule"
     rc.change.actions[_] == "create"
@@ -20,7 +20,7 @@ deny[msg] if {
     msg := sprintf("Creating ingress rule %s that allows all traffic", [rc.address])
 }
 
-deny[msg] if {
+deny[msg] {
     rc := input.resource_changes[_]
     rc.type == "aws_vpc_security_group_ingress_rule"
     rc.change.actions[_] == "update"
@@ -29,7 +29,7 @@ deny[msg] if {
     msg := sprintf("Updating ingress rule %s to allow all traffic", [rc.address])
 }
 
-deny[msg] if {
+deny[msg] {
     rc := input.resource_changes[_]
     rc.type == "aws_vpc_security_group_egress_rule"
     rc.change.actions[_] == "create"
@@ -38,7 +38,7 @@ deny[msg] if {
     msg := sprintf("Creating egress rule %s that allows all traffic", [rc.address])
 }
 
-deny[msg] if {
+deny[msg] {
     rc := input.resource_changes[_]
     rc.type == "aws_vpc_security_group_egress_rule"
     rc.change.actions[_] == "update"
@@ -47,6 +47,6 @@ deny[msg] if {
     msg := sprintf("Updating egress rule %s to allow all traffic", [rc.address])
 }
 
-allow if {
+allow {
     count(deny) == 0
 }
